@@ -183,12 +183,17 @@ def create_playlist(output_dir, file_dir, config):
         if i.is_file():
             i.unlink()
 
+    count = 0
     data = [i for i in user_playlist_dir.glob("*.m3u8")]
     for i in data:
         if i.stem in config["user_list"]:
             idx = str(config["user_list"].index(i.stem) + 1).zfill(len(str(len(data))))
             i2 = user_playlist_sort_dir / f"{idx} {i.name}"
             shutil.copy(str(i), str(i2))
-        else:
-            i2 = user_playlist_sort_dir / i.name
+            count += 1
+    for i in data:
+        if i.stem not in config["user_list"]:
+            idx = str(count + 1).zfill(len(str(len(data))))
+            i2 = user_playlist_sort_dir / f"{idx} {i.name}"
             shutil.copy(str(i), str(i2))
+            count += 1
