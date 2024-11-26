@@ -131,6 +131,9 @@ def m3u8_download(url, cacheDirPath, filePath, meta_data):
     response = get_url(url, tag="get_m3u8_file", meta_data=meta_data)
     urlParent = url.split("?")[0].rsplit("/", 1)[0]
     tsNameArr = getTsList(response.text)
+    assert (
+        len(tsNameArr) > 0
+    ), f"m3u8 ts number is zero, please detect video player network {url}"
     createDir(cacheDirPath)
     tsFileArr = [(cacheDirPath / i) for i in tsNameArr]
     tsUrlArrFull = [urlParent + "/" + i for i in tsNameArr]

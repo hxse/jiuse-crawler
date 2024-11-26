@@ -86,7 +86,11 @@ def get_user(
 
         mkdir_path(file_path)
         cache_dir = get_cache_dir(file_path, output_dir=output_dir)
-        m3u8_download(res3["m3u8_url"], cache_dir, file_path, meta_data)
+        try:
+            m3u8_download(res3["m3u8_url"], cache_dir, file_path, meta_data)
+        except AssertionError as e:
+            print(f"[bold red]{e}[/]")
+            continue
 
     value = res["data"][0]
     file_path = get_file_path(
@@ -129,7 +133,10 @@ def get_video(
         if not file_path.is_file():
             g_file_path.rename(file_path)
     else:
-        m3u8_download(res["m3u8_url"], cache_dir, file_path, meta_data)
+        try:
+            m3u8_download(res["m3u8_url"], cache_dir, file_path, meta_data)
+        except AssertionError as e:
+            print(f"[bold red]{e}[/]")
 
     create_video_playlist(output_dir, file_path.parent, config)
 
