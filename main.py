@@ -1,6 +1,5 @@
 import m3u8_multithreading_download
 import monkey_patch
-from retry import retry
 from browser import run_browser
 import typer
 from callback import get_home_page, get_m3u8_page
