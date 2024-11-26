@@ -138,6 +138,7 @@ def main(url, headless: bool = True, output_dir: str = download_dir, page: int =
     output_dir = Path(output_dir)
     url = replace_url(url)
     config = get_config(output_dir)
+
     if "author" in url:
         get_user(url, headless, output_dir, page, config)
     elif "video" in url:
