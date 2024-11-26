@@ -38,8 +38,8 @@ def getCachePath(cacheDirPath, url):
     return cacheDirPath / url.split("/")[-1]
 
 
-def get_url(url, retry=1, tag="", meta_data={}):
-    assert retry <= retryMax, f"{tag} 超过最大重试次数:{retryMax}"
+def get_url(url, retry=1, tag="", meta_data={}, retryMax=2):
+    assert retry <= retryMax, f"{tag} 超过最大重试次数:{retryMax} {url}"
     try:
         response = requests.get(
             url,
@@ -48,17 +48,20 @@ def get_url(url, retry=1, tag="", meta_data={}):
             proxies=proxies,
             timeout=timeout,
         )
-        if response.status_code == 200:
-            return response
-        raise Exception(f"{tag} 服务器返回了 {response.status_code}")
+        if response.status_code != 200:
+            raise Exception(f"{tag} 服务器返回了 {response.status_code}")
+        if len(response.text) == 0:
+            raise Exception(
+                f"m3u8 ts number is zero, please detect video player network"
+            )
+        return response
     except Exception as e:
         retry += 1
-        print(f"{tag} 报错内容: {e}")
-        print(f"{tag} 重试次数:{retry} 最大次数:{retryMax}")
+        print(f"{tag} retry {retry}/{retryMax} {e}")
         if str(e).split(" ")[-1] == "403":
             print(f"****已跳过,服务器返回403,可能是版权问题**** {url}")
             return
-        return get_url(url, retry, meta_data=meta_data)
+        return get_url(url, retry, tag=tag, meta_data=meta_data)
 
 
 def imap_loop(tsUrlArrFull, cacheDirPath, filePath, retry=1, meta_data={}):
@@ -129,19 +132,17 @@ def imap_loop(tsUrlArrFull, cacheDirPath, filePath, retry=1, meta_data={}):
 
 def m3u8_download(url, cacheDirPath, filePath, meta_data):
     response = get_url(url, tag="get_m3u8_file", meta_data=meta_data)
-    urlParent = url.split("?")[0].rsplit("/", 1)[0]
-    tsNameArr = getTsList(response.text)
-    assert (
-        len(tsNameArr) > 0
-    ), f"m3u8 ts number is zero, please detect video player network {url}"
-    createDir(cacheDirPath)
-    tsFileArr = [(cacheDirPath / i) for i in tsNameArr]
-    tsUrlArrFull = [urlParent + "/" + i for i in tsNameArr]
+    if response:
+        urlParent = url.split("?")[0].rsplit("/", 1)[0]
+        tsNameArr = getTsList(response.text)
+        createDir(cacheDirPath)
+        tsFileArr = [(cacheDirPath / i) for i in tsNameArr]
+        tsUrlArrFull = [urlParent + "/" + i for i in tsNameArr]
 
-    imap_loop(tsUrlArrFull, cacheDirPath, filePath, meta_data=meta_data)
+        imap_loop(tsUrlArrFull, cacheDirPath, filePath, meta_data=meta_data)
 
-    ts_merge(tsFileArr, cacheDirPath, filePath)
-    delete(tsFileArr, cacheDirPath)
+        ts_merge(tsFileArr, cacheDirPath, filePath)
+        delete(tsFileArr, cacheDirPath)
 
 
 def trans_concat(name):
