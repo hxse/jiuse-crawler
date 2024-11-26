@@ -29,9 +29,7 @@ def main(url, headless: bool = True, output_dir: str = download_dir, page: int =
     [res, meta_data] = run_browser(
         url, callback=get_home_page, headless=headless, output_dir=output_dir
     )
-    res["data"] = filter_video(url, [*res["video_arr"]])
-    [pageInfoArr, blacklistArr] = blacklist_filter(res["data"], config)
-    res["data"] = pageInfoArr
+    res["data"] = [*res.get("data", []), *filter_video(url, [*res["video_arr"]])]
 
     del res["video_arr"]
     assert len(res["data"]) != 0, f"number of videos is zero {url}"
@@ -48,8 +46,14 @@ def main(url, headless: bool = True, output_dir: str = download_dir, page: int =
                 headless=headless,
                 output_dir=output_dir,
             )
-            res["data"] = filter_video(url, [*res2["video_arr"]])
+            res["data"] = [
+                *res.get("data", []),
+                *filter_video(url, [*res2["video_arr"]]),
+            ]
             assert len(res["data"]) != 0, f"number of videos is zero {url}"
+
+    [pageInfoArr, blacklistArr] = blacklist_filter(res["data"], config)
+    res["data"] = pageInfoArr
 
     for index, value in enumerate(res["data"]):
         file_path = get_file_path(
