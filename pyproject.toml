@@ -1,0 +1,17 @@
+[project]
+name = "jiuse-crawler"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "botasaurus>=4.0.75",
+    "chrome-extension-python>=1.0.1",
+    "grequests>=0.7.0",
+    "m3u8>=6.0.0",
+    "pathvalidate>=3.2.1",
+    "requests>=2.32.3",
+    "retry>=0.9.2",
+    "rich>=13.9.4",
+    "typer>=0.13.1",
+]
