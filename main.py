@@ -14,17 +14,21 @@ from tool import (
     filter_video,
     get_config,
     blacklist_filter,
+    get_video_path,
+    create_video_playlist,
 )
 from rich import print
 from m3u8_multithreading_download import m3u8_download
 from pathlib import Path
 
 
-def main(url, headless: bool = True, output_dir: str = download_dir, page: int = 1):
-    output_dir = Path(output_dir)
-    url = replace_url(url)
-    config = get_config(output_dir)
-
+def get_user(
+    url,
+    headless: bool = True,
+    output_dir: str = download_dir,
+    page: int = 1,
+    config={},
+):
     print(f"[bold yellow]get page 1 {url}[/]")
     [res, meta_data] = run_browser(
         url, callback=get_home_page, headless=headless, output_dir=output_dir
@@ -95,7 +99,57 @@ def main(url, headless: bool = True, output_dir: str = download_dir, page: int =
     create_playlist(output_dir, file_path.parent, config)
 
 
+def get_video(
+    url,
+    headless: bool = True,
+    output_dir: str = download_dir,
+    page: int = 1,
+    config={},
+):
+    [res, meta_data] = run_browser(
+        url,
+        callback=get_m3u8_page,
+        headless=headless,
+        output_dir=output_dir,
+    )
+
+    file_path = get_video_path(
+        res["author"],
+        res["title"],
+        res["date"],
+        res["videoId"],
+        dataDir="videos",
+        output_dir=output_dir,
+    )
+    cache_dir = get_cache_dir(file_path, output_dir)
+
+    [g_file_path, flag] = check_skip_glob(res, file_path)
+    if flag:
+        print(f"[bold green]skip {g_file_path}[/]")
+        if not file_path.is_file():
+            g_file_path.rename(file_path)
+    else:
+        m3u8_download(res["m3u8_url"], cache_dir, file_path, meta_data)
+
+    create_video_playlist(output_dir, file_path.parent, config)
+
+
+def main(url, headless: bool = True, output_dir: str = download_dir, page: int = 1):
+    output_dir = Path(output_dir)
+    url = replace_url(url)
+    config = get_config(output_dir)
+    if "author" in url:
+        get_user(url, headless, output_dir, page, config)
+    elif "video" in url:
+        get_video(url, headless, output_dir, page, config)
+
+
 if __name__ == "__main__":
     app = typer.Typer(pretty_exceptions_show_locals=False)
-    app.command()(main)
+    app.command(help="also ma")(main)
+    app.command("ma", hidden=True)(main)
+    app.command(help="also gu")(get_user)
+    app.command("gu", hidden=True)(get_user)
+    app.command(help="also gv")(get_video)
+    app.command("gv", hidden=True)(get_video)
     app()

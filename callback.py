@@ -65,4 +65,16 @@ def get_m3u8_page(driver, data):
     videos = soup.select_one("#video-play")
     m3u8_url = videos["data-src"]
 
-    return {"m3u8_url": m3u8_url}
+    title = soup.select_one("#videoShowPage .container-title").text.strip()
+    author = soup.select_one("#videoShowTabAbout div a").text.strip()
+    date = soup.select("#videoShowTabAbout .text-small")[1].text.strip()
+    view = soup.select("#videoShowTabAbout div")[-1].text.strip()
+
+    return {
+        "title": title,
+        "author": author,
+        "date": date,
+        "view": view,
+        "videoId": url.split("/")[-1],
+        "m3u8_url": m3u8_url,
+    }

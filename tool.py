@@ -81,6 +81,25 @@ def get_file_path(
     return output_dir / filePath
 
 
+def get_video_path(
+    author: str,
+    title: str,
+    date: str,
+    videoId: str,
+    dataDir: str = "data_files",
+    output_dir: str = download_dir,
+):
+    file_path = get_file_path(
+        author,
+        title,
+        date,
+        videoId,
+        dataDir="videos",
+        output_dir=output_dir,
+    )
+    return output_dir / "videos" / file_path.name
+
+
 def filter_video(url, pageInfoArr):
     author = urllib.parse.unquote(url.split("/")[4])
     _arr = []
@@ -133,6 +152,17 @@ def blacklist_filter(pageInfoArrOrigin, config):
         else:
             pageInfoArr.append(info)
     return [pageInfoArr, blacklistArr]
+
+
+def create_video_playlist(output_dir, file_dir, config):
+    playlist_path = output_dir / "videos.m3u8"
+
+    video_arr = [
+        f"../{i.parent.parent.name}/{i.parent.name}/{i.name}"
+        for i in file_dir.glob("*.mp4")
+    ]
+    with open(playlist_path, "w", encoding="utf8") as f:
+        f.write("\n".join(video_arr))
 
 
 def create_playlist(output_dir, file_dir, config):
