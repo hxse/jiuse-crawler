@@ -31,6 +31,7 @@ from tool import get_meta_data
     window_size=lambda x: x["window_size"],
     proxy=lambda x: x["proxy"],
     wait_for_complete_page_load=False,
+    max_retry=3,
 )
 def browser_driver(driver: Driver, data):
     res = data["callback"](driver, data)
