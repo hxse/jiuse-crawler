@@ -83,6 +83,9 @@ def get_user(
             headless=headless,
             output_dir=output_dir,
         )
+        if res3.get("error", ""):
+            print("skip", res3.get("message", ""))
+            continue
 
         mkdir_path(file_path)
         cache_dir = get_cache_dir(file_path, output_dir=output_dir)
@@ -116,6 +119,9 @@ def get_video(
         headless=headless,
         output_dir=output_dir,
     )
+    if res.get("error", ""):
+        print("skip", res.get("message", ""))
+        return
 
     file_path = get_video_path(
         res["author"],

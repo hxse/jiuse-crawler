@@ -1,6 +1,7 @@
 from tool import get_meta_data, check_state, get_domain
 from botasaurus.soupify import soupify
 from botasaurus.browser import Wait
+import botasaurus_driver
 
 
 def get_home_page(driver, data):
@@ -59,9 +60,16 @@ def get_m3u8_page(driver, data):
     domain = get_domain(url)
     driver.get(url, wait=data["waitTime"])
     # check_state(driver, timeout=data["timeout"])
-    driver.wait_for_element("#video-play", wait=Wait.LONG)
-    soup = soupify(driver)
+    try:
+        driver.wait_for_element("#video-play", wait=Wait.LONG)
+    except botasaurus_driver.exceptions.ElementWithSelectorNotFoundException as e:
+        print(e)
+        soup = soupify(driver)
+        resultEl = soup.select_one("#resultPage")
+        if "视频因版权原因已被删除" in resultEl.text:
+            return {"error": True, "message": "视频因版权原因已被删除"}
 
+    soup = soupify(driver)
     videos = soup.select_one("#video-play")
     m3u8_url = videos["data-src"]
 
